@@ -3,6 +3,7 @@ import json
 import pandas as pd
 import streamlit as st
 import plotly.express as px
+import plotly.graph_objs as go
 
 
 def authentication(creds):
@@ -77,15 +78,15 @@ def main():
             st.subheader("Save tweets to the file.")
             user_input_csv = st.text_input(
                 "Provide Twitter ID:", key="csv")
-            
+
             csv = convert_df(create_csv_from_user_tweets(user_input_csv))
             st.download_button(
                 label="Download data as CSV",
                 data=csv,
                 file_name='data.csv',
                 mime='text/csv',
-                )
-            
+            )
+
         with right_column:
             st.subheader("Save tweets to DB.")
             st.write("Soon...")
@@ -99,9 +100,12 @@ def main():
         with right_column:
             if uploaded_file:
                 df = pd.read_csv(uploaded_file, encoding="utf-8")
-                st.dataframe(df[['User', 'Tweet']])
-                fig = pd.DataFrame(df['User'].value_counts())
-                
+                st.dataframe(df[['User', 'Tweets']])
+                # fig = pd.DataFrame(df.groupby('User').count(), columns=['Tweets'])
+                fig = px.bar(df, x="User", color="User")
+                fig.update_xaxes(title="")
+                fig.update_yaxes(title="Number of Tweets")
+
     with st.container():
         st.write("---")
         left_column, middle_column, right_column = st.columns(3)
@@ -109,13 +113,13 @@ def main():
             pass
         with middle_column:
             if uploaded_file:
-                st.bar_chart(fig)
+                # st.bar_chart(fig, width=1500, height=500) 
+                st.plotly_chart(fig, width=1500, height=500) 
         with right_column:
             pass
-        
+
+
 if __name__ == '__main__':
     credentials = 'credentials.json'
     api = authentication(credentials)
     main()
-    # create_csv_from_user_tweets("pwojtarowicz1")
-    # user_tweets("pwojtarowicz1")

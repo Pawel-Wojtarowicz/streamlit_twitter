@@ -3,7 +3,6 @@ import json
 import pandas as pd
 import streamlit as st
 import plotly.express as px
-import plotly.graph_objs as go
 
 
 def authentication(creds):
@@ -39,17 +38,16 @@ def create_csv_from_timeline():
 
 def create_csv_from_user_tweets(user):
     tweets = api.user_timeline(
-        screen_name=user, count=200, tweet_mode="extended")
-    columns = ["Time", "User", "Tweet"]
+        screen_name=user, count=80, tweet_mode="extended")
+    columns = ["User", "Tweet"]
     data = []
 
     for tweet in tweets:
         data.append(
-            [tweet.created_at, tweet.user.screen_name, tweet.full_text])
+            [tweet.user.screen_name, tweet.full_text])
 
     df = pd.DataFrame(data, columns=columns)
     return df
-    # df.to_csv("tweety.csv")
 
 
 def user_tweets(user):
@@ -78,7 +76,6 @@ def main():
             st.subheader("Save tweets to the file.")
             user_input_csv = st.text_input(
                 "Provide Twitter ID:", key="csv")
-
             csv = convert_df(create_csv_from_user_tweets(user_input_csv))
             st.download_button(
                 label="Download data as CSV",
@@ -89,7 +86,7 @@ def main():
 
         with right_column:
             st.subheader("Save tweets to DB.")
-            st.write("Soon...")
+            st.write("Soon..")
 
     with st.container():
         st.write("---")
@@ -101,10 +98,11 @@ def main():
             if uploaded_file:
                 df = pd.read_csv(uploaded_file, encoding="utf-8")
                 st.dataframe(df[['User', 'Tweets']])
-                # fig = pd.DataFrame(df.groupby('User').count(), columns=['Tweets'])
-                fig = px.bar(df, x="User", color="User")
-                fig.update_xaxes(title="")
-                fig.update_yaxes(title="Number of Tweets")
+
+                fig = df.groupby("User", as_index=False).count()
+                fig = px.bar(fig, x="User", y="Tweets", color="User", title="Bar chart", labels={
+                             "Tweets": "Number of Tweets", "User": "Users"})
+                fig.update_layout(height=1000, width=500)
 
     with st.container():
         st.write("---")
@@ -113,10 +111,12 @@ def main():
             pass
         with middle_column:
             if uploaded_file:
-                # st.bar_chart(fig, width=1500, height=500) 
-                st.plotly_chart(fig, width=1500, height=500) 
+                st.plotly_chart(fig)
+                pass
         with right_column:
-            pass
+            text_area = st.text_area("input:")
+            print(type(text_area))
+            print(text_area)
 
 
 if __name__ == '__main__':

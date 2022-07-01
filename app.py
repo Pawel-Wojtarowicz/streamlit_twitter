@@ -3,6 +3,7 @@ import json
 import pandas as pd
 import streamlit as st
 import plotly.express as px
+from streamlit_tags import st_tags
 
 
 def authentication(creds):
@@ -36,15 +37,16 @@ def create_csv_from_timeline():
     df.to_csv("tweety.csv")
 
 
-def create_csv_from_user_tweets(user):
-    tweets = api.user_timeline(
-        screen_name=user, count=80, tweet_mode="extended")
-    columns = ["User", "Tweet"]
+def create_csv_from_user_tweets(users):
+
+    columns = ["User", "Tweets"]
     data = []
 
-    for tweet in tweets:
-        data.append(
-            [tweet.user.screen_name, tweet.full_text])
+    for user in users:
+        tweets = api.user_timeline(
+            screen_name=user, count=80, tweet_mode="extended")
+        for tweet in tweets:
+            data.append([tweet.user.screen_name, tweet.full_text])
 
     df = pd.DataFrame(data, columns=columns)
     return df
@@ -64,7 +66,6 @@ def convert_df(df):
 
 
 def main():
-    #### STREAMLIT ####
     st.set_page_config(page_title="My Website",
                        page_icon=":bar_chart:", layout="wide")
     st.title("Streamlit with Twitter")
@@ -74,9 +75,10 @@ def main():
         left_column, right_column = st.columns(2)
         with left_column:
             st.subheader("Save tweets to the file.")
-            user_input_csv = st.text_input(
-                "Provide Twitter ID:", key="csv")
-            csv = convert_df(create_csv_from_user_tweets(user_input_csv))
+            keywords = st_tags(label="Enter Accounts from Twitter:", text="Press enter to add more", value=[
+                               "elonmusk", "barackobama"])
+            csv = convert_df(create_csv_from_user_tweets(keywords))
+
             st.download_button(
                 label="Download data as CSV",
                 data=csv,
@@ -112,11 +114,8 @@ def main():
         with middle_column:
             if uploaded_file:
                 st.plotly_chart(fig)
-                pass
         with right_column:
-            text_area = st.text_area("input:")
-            print(type(text_area))
-            print(text_area)
+            pass
 
 
 if __name__ == '__main__':

@@ -41,15 +41,19 @@ def create_csv_from_user_tweets(users):
 
     columns = ["User", "Tweets"]
     data = []
-
+    error = ""
     for user in users:
-        tweets = api.user_timeline(
-            screen_name=user, count=80, tweet_mode="extended")
-        for tweet in tweets:
-            data.append([tweet.user.screen_name, tweet.full_text])
+        try:
+            tweets = api.user_timeline(
+                screen_name=user, count=80, tweet_mode="extended")
+            for tweet in tweets:
+                data.append([tweet.user.screen_name, tweet.full_text])
+        except:
+            error += user + " "
+            pass
 
     df = pd.DataFrame(data, columns=columns)
-    return df
+    return df, error 
 
 
 def user_tweets(user):
@@ -77,15 +81,20 @@ def main():
             st.subheader("Save tweets to the file.")
             keywords = st_tags(label="Enter Accounts from Twitter:", text="Press enter to add more", value=[
                                "elonmusk", "barackobama"])
-            csv = convert_df(create_csv_from_user_tweets(keywords))
-
+            csv = convert_df(create_csv_from_user_tweets(keywords)[0])
+                  
+            if create_csv_from_user_tweets(keywords)[1]:
+                st.write("User(s):", create_csv_from_user_tweets(keywords)[1],"not found.")
+            else:
+                pass   
+              
             st.download_button(
                 label="Download data as CSV",
                 data=csv,
                 file_name='data.csv',
                 mime='text/csv',
             )
-
+             
         with right_column:
             st.subheader("Save tweets to DB.")
             st.write("Soon..")
@@ -104,7 +113,7 @@ def main():
                 fig = df.groupby("User", as_index=False).count()
                 fig = px.bar(fig, x="User", y="Tweets", color="User", title="Bar chart", labels={
                              "Tweets": "Number of Tweets", "User": "Users"})
-                fig.update_layout(height=1000, width=500)
+                fig.update_layout(height=800, width=400)
 
     with st.container():
         st.write("---")
@@ -113,7 +122,7 @@ def main():
             pass
         with middle_column:
             if uploaded_file:
-                st.plotly_chart(fig)
+                st.plotly_chart(fig)               
         with right_column:
             pass
 

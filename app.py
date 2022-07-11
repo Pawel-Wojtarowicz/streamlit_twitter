@@ -35,7 +35,7 @@ def create_csv_from_user_tweets(users):
     for user in users:
         try:
             tweets = api.user_timeline(
-                screen_name=user, count=80, tweet_mode="extended")
+                screen_name=user, count=200, tweet_mode="extended")
             for tweet in tweets:
                 data.append([tweet.user.screen_name, tweet.full_text])
         except:
@@ -75,42 +75,42 @@ def main():
             st.write("---")
             st.subheader("Save tweets to the file usinng Twitter scrapper")
             keywords_scrapper = st_tags(label="Enter Accounts from Twitter:",
-                               text="Press enter to add more", value=["elonmusk", "barackobama"], key="scrapper")
+                                        text="Press enter to add more", value=["elonmusk", "barackobama"], key="scrapper")
         with right_column:
             st.write("---")
-            st.subheader("Save tweets to the file using Twitter API")
+            st.subheader(
+                "Save 200 latest user tweets to CSV using Twitter API")
             keywords_api = st_tags(label="Enter Accounts from Twitter:",
-                               text="Press enter to add more", value=["trzaskowski_", "bweglarczyk"], key="api")
-            
-            csv_api= convert_df(create_csv_from_user_tweets(keywords_api)[0])
+                                   text="Press enter to add more", value=["trzaskowski_", "bweglarczyk"], key="api")
+
+            csv_api = convert_df(create_csv_from_user_tweets(keywords_api)[0])
 
             if create_csv_from_user_tweets(keywords_api)[1]:
                 st.write("User(s):", create_csv_from_user_tweets(
                     keywords_api)[1], "not found.")
             else:
                 pass
-        
+
     with st.container():
         today = datetime.today().date()
-        # dates = []
         left_column, middle_column, right_column = st.columns([1, 1, 2])
         with left_column:
-            # dates.append(st.date_input("From:", today))
             fromdate = st.date_input("From:", today)
         with middle_column:
-            # dates.append(st.date_input("To:", today))
             todate = st.date_input("To:", today)
-        
-         
+
+        csv_scrapper = convert_df(
+            create_csv_from_user_tweets_from_the_time_interval(keywords_scrapper, fromdate, todate))
+
         st.download_button(
-                label="Download data as CSV",
-                data=csv_scrapper,
-                file_name='data.csv',
-                mime='text/csv',
-                key="scrappper"
-            )
+            label="Download data as CSV",
+            data=csv_scrapper,
+            file_name='data.csv',
+            mime='text/csv',
+            key="scrappper"
+        )
         with right_column:
-    
+
             st.download_button(
                 label="Download data as CSV",
                 data=csv_api,

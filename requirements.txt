@@ -1,0 +1,7 @@
+tweepy
+json
+pandas
+streamlit
+snscrape.modules.twitter
+plotly
+datetime

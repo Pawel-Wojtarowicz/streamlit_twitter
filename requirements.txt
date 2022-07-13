@@ -4,3 +4,4 @@ streamlit
 snscrape
 plotly
 datetime
+streamlit_tags

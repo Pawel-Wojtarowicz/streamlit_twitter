@@ -27,6 +27,7 @@ def read_creds(filename):
     return credentials
 
 
+@st.cache(show_spinner=False)
 def create_csv_from_user_tweets(users):
 
     columns = ["User", "Tweets"]
@@ -35,7 +36,7 @@ def create_csv_from_user_tweets(users):
     for user in users:
         try:
             tweets = api.user_timeline(
-                screen_name=user, count=200, tweet_mode="extended")
+                screen_name=user, count=50, tweet_mode="extended")
             for tweet in tweets:
                 data.append([tweet.user.screen_name, tweet.full_text])
         except:
@@ -46,6 +47,7 @@ def create_csv_from_user_tweets(users):
     return df, error
 
 
+@st.cache(show_spinner=False)
 def create_csv_from_user_tweets_from_the_time_interval(provided_user_list, fromdate, todate):
     columns = ["User", "Tweets"]
     tweets = []
@@ -79,11 +81,13 @@ def main():
         with right_column:
             st.write("---")
             st.subheader(
-                "Save 200 latest user tweets to CSV using Twitter API")
+                "Save 50 latest user tweets to CSV using Twitter API")
             keywords_api = st_tags(label="Enter Accounts from Twitter:",
-                                   text="Press enter to add more", value=["trzaskowski_", "bweglarczyk"], key="api")
+                                   text="Press enter to add more", value=["lewy_official", "iga_swiatek"], key="api")
 
-            csv_api = convert_df(create_csv_from_user_tweets(keywords_api)[0])
+            with st.spinner(text="Preparing data"):
+                csv_api = convert_df(
+                    create_csv_from_user_tweets(keywords_api)[0])
 
             if create_csv_from_user_tweets(keywords_api)[1]:
                 st.write("User(s):", create_csv_from_user_tweets(
@@ -99,8 +103,9 @@ def main():
         with middle_column:
             todate = st.date_input("To:", today)
 
-        csv_scrapper = convert_df(
-            create_csv_from_user_tweets_from_the_time_interval(keywords_scrapper, fromdate, todate))
+        with st.spinner(text="Preparing data"):
+            csv_scrapper = convert_df(
+                create_csv_from_user_tweets_from_the_time_interval(keywords_scrapper, fromdate, todate))
 
         st.download_button(
             label="Download data as CSV",
@@ -116,14 +121,14 @@ def main():
                 data=csv_api,
                 file_name='data.csv',
                 mime='text/csv',
-                key="api"
+                key="from_api"
             )
 
     with st.container():
         st.write("---")
         left_column, right_column = st.columns(2)
         with left_column:
-            st.write("Plot your data.")
+            st.subheader("Plot your data.")
             uploaded_file = st.file_uploader("Choose a CSV file.", type="csv")
         with right_column:
             if uploaded_file:
